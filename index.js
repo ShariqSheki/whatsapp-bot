@@ -2,11 +2,13 @@ const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const { createClient } = require('@supabase/supabase-js');
 const http = require('http');
+const os = require('os');
+const path = require('path');
 require('dotenv').config();
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-// Add HTTP server for Render
+// HTTP server for Render
 const server = http.createServer((req, res) => {
     res.writeHead(200);
     res.end('WhatsApp Bot is running!');
@@ -17,10 +19,23 @@ server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
 
+// Find Chrome path
+const chromePath = path.join(os.homedir(), '.cache/puppeteer/chrome/linux-131.0.6778.204/chrome-linux64/chrome');
+
 const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
+        headless: true,
+        executablePath: chromePath,
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--no-first-run',
+            '--no-zygote',
+            '--disable-gpu'
+        ]
     }
 });
 
