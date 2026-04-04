@@ -2,13 +2,12 @@ const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const { createClient } = require('@supabase/supabase-js');
 const http = require('http');
-const os = require('os');
-const path = require('path');
+const { execSync } = require('child_process');
 require('dotenv').config();
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-// HTTP server for Render
+// HTTP server
 const server = http.createServer((req, res) => {
     res.writeHead(200);
     res.end('WhatsApp Bot is running!');
@@ -19,21 +18,22 @@ server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
 
-// Find Chrome path
-const chromePath = path.join(os.homedir(), '.cache/puppeteer/chrome/linux-131.0.6778.204/chrome-linux64/chrome');
+// Download Chrome at startup
+console.log('Installing Chrome...');
+try {
+    execSync('npx puppeteer browsers install chrome', { stdio: 'inherit' });
+    console.log('Chrome installed successfully');
+} catch (error) {
+    console.error('Failed to install Chrome:', error);
+}
 
 const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
-        headless: true,
-        executablePath: chromePath,
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
             '--disable-dev-shm-usage',
-            '--disable-accelerated-2d-canvas',
-            '--no-first-run',
-            '--no-zygote',
             '--disable-gpu'
         ]
     }
